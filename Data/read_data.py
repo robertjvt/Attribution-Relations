@@ -52,9 +52,9 @@ def remove_placeholders(parc_dev):
                 if match is not None:
                     temp.append((j[0], match[0]))
                 else:
-                    temp.append((j[0], ''))
+                    temp.append((j[0], 'O'))
             else:
-                temp.append((j[0], ''))
+                temp.append((j[0], 'O'))
         clean_parc_dev_2.append(temp)
     return clean_parc_dev_2
 

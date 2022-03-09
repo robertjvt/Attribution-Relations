@@ -25,7 +25,6 @@ def word2features(sent, i):
 
     if i > 0:
         word1 = sent[i-1][0]
-        postag1 = sent[i-1][1]
         features.update({
             '-1:word.lower()': word1.lower(),
             '-1:word.istitle()': word1.istitle(),
@@ -36,7 +35,6 @@ def word2features(sent, i):
 
     if i < len(sent)-1:
         word1 = sent[i+1][0]
-        postag1 = sent[i+1][1]
         features.update({
             '+1:word.lower()': word1.lower(),
             '+1:word.istitle()': word1.istitle(),
@@ -73,17 +71,29 @@ def train_crf(X_train, y_train):
 
 def main():
     os.chdir('..')
-    #parc_train = read_data.main('Data/PARC3.0/PARC_tab_format/train')
-    #parc_test = read_data.main('Data/PARC3.0/PARC_tab_format/test')
+    parc_train = read_data.main('Data/PARC3.0/PARC_tab_format/train')
+    parc_test = read_data.main('Data/PARC3.0/PARC_tab_format/test')
     parc_dev = read_data.main('Data/PARC3.0/PARC_tab_format/dev')
 
-    X_train = [sent2features(s) for s in parc_dev[:1076]]
-    y_train = [sent2labels(s) for s in parc_dev[:1076]]
+    X_train = [sent2features(s) for s in parc_dev[:100]]
+    y_train = [sent2labels(s) for s in parc_dev[:100]]
+    #X_train = [sent2features(s) for s in parc_train]
+    #y_train = [sent2labels(s) for s in parc_train]
 
-    X_test = [sent2features(s) for s in parc_dev[1076:]]
-    y_test = [sent2labels(s) for s in parc_dev[1076:]]
+    X_test = [sent2features(s) for s in parc_dev[100:200]]
+    y_test = [sent2labels(s) for s in parc_dev[100:200]]
+    #X_test = [sent2features(s) for s in parc_test]
+    #y_test = [sent2labels(s) for s in parc_test]
 
     crf = train_crf(X_train, y_train)
+    y_pred = crf.predict(X_test)
+
+    with open('CRF/output_crf.txt', 'w') as file:
+        for sentence in y_pred:
+            file.write('\t'.join(sentence) + '\n')
+    with open('CRF/input_crf.txt', 'w') as file:
+        for sentence in y_test:
+            file.write('\t'.join(sentence) + '\n')
 
 
 if __name__ == "__main__":
