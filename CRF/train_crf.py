@@ -71,8 +71,8 @@ def train_crf(X_train, y_train):
 
 def main():
     os.chdir('..')
-    parc_train = read_data.main('Data/PARC3.0/PARC_tab_format/train')
-    parc_test = read_data.main('Data/PARC3.0/PARC_tab_format/test')
+    #parc_train = read_data.main('Data/PARC3.0/PARC_tab_format/train')
+    #parc_test = read_data.main('Data/PARC3.0/PARC_tab_format/test')
     parc_dev = read_data.main('Data/PARC3.0/PARC_tab_format/dev')
 
     X_train = [sent2features(s) for s in parc_dev[:100]]

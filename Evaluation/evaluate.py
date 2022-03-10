@@ -57,6 +57,11 @@ def determine_spans2(data):
     return spans
 
 def evaluate_spans(gold_spans, predictions):
+    """Evaluates the predictions to the gold spans using a strict match.
+
+    :param gold_spans: the spans retrieved from the gold data
+    :param predictions: the predictions that are retrieved from a model
+    """
     tp = 0
     tn = 0
     fp = 0
@@ -82,10 +87,22 @@ def evaluate_spans(gold_spans, predictions):
     print(f'F1: {(2*tp) / ((2*tp) + fp + fn)}')
 
 
+def evaluate_spans_partial(gold_spans, predictions):
+    # precision = sum of elements gold spans * sum of elements predictions / absolute values of predictions
+    # recall =
+    # f1 = 2*p * 2*r / (p + r)
+    # use micro-average scores
+    pass
+
+
 def main():
     os.chdir('..')
-    #with open('CRF/output_crf.txt', 'r') as file:
-        #predictions = file.readlines()
+    with open('CRF/output_crf.txt', 'r') as file:
+        real_predictions = []
+        for line in file:
+            line = re.sub('SOURCE', 'SOURCEX', line)
+            line = line.rstrip() + '\t<eos>'
+            real_predictions.append(line.rstrip().split('\t'))
 
     with open('CRF/input_crf.txt', 'r') as file:
         gold = []
@@ -97,7 +114,7 @@ def main():
             gold.append(line.rstrip().split('\t'))
 
     gold_spans = determine_spans2(gold)
-    evaluate_spans(gold_spans, predictions)
+    evaluate_spans(gold_spans, real_predictions)
 
 if __name__ == "__main__":
     main()
