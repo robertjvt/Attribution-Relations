@@ -28,11 +28,11 @@ def read_data(location: str) -> list:
 
 
 def extract_tokens_labels(all_data: list) -> list:
-    '''Extracts all tokens and corresponding labels per token.
+    """Extracts all tokens and corresponding labels per token.
 
     :param all_data: data from all files
     :return: sentences of tuples of a token and its label(s)
-    '''
+    """
     # Find the tokens: (?:[A-Za-z-[0-9])+
     # Find blanco tokens: (?:B-|I-)(?:CUE|CONTENT|SOURCE)
     tokens_labels = []
@@ -49,12 +49,12 @@ def extract_tokens_labels(all_data: list) -> list:
     return tokens_labels
 
 
-def structure_data(tokens_labels, argv):
-    '''Removed nested ARs and further prepare the data for working with it.
-
+def structure_data(tokens_labels: list, argv: str) -> list:
+    """
     :param tokens_labels: tokens and corresponding labels
+    :param argv: name of the dataset folder
     :return: structured data
-    '''
+    """
     clean_data = []
     nested_regex = re.compile(r'[A-Za-z\-]+-NE-[0-9]+')
     label_regex = re.compile(r'(?:B-|I-)(?:CUE|CONTENT|SOURCE)')
@@ -66,7 +66,7 @@ def structure_data(tokens_labels, argv):
                 tokens = label_tokens[1]
                 filtered_token = [i for i in tokens if not nested_regex.match(i)]
                 if filtered_token != []:
-                    match = re.match(label_regex, filtered_token[0])
+                    match = re.match(label_regex, filtered_token[0]) or 'O'
                     temp.append((label_tokens[0], match[0]))
                 else:
                     temp.append((label_tokens[0], 'O'))
@@ -81,10 +81,8 @@ def structure_data(tokens_labels, argv):
                     if i[1] != []:
                         if len(first_token) > 1:
                             first_token = i[1][0]
-                            print(first_token)
                         else:
                             first_token = i[1]
-                            print(first_token)
                 if i[1] != [] and i[1][0][-2:] == first_token[0][-2:]:
                     match = re.match(label_regex, i[1][0])
                     if match is not None:
@@ -98,7 +96,7 @@ def structure_data(tokens_labels, argv):
     return clean_data
 
 
-def main(argv: list) -> list:
+def main(argv: str) -> list:
     # parc loc: "Data/PARC3.0/PARC_tab_format/dev"
     # polnear loc: "Data/POLNEAR_enriched/dev"
     # vaccination loc: "Data/VaccinationCorpus"
@@ -106,10 +104,8 @@ def main(argv: list) -> list:
     all_data = read_data(argv)
     tokens_labels = extract_tokens_labels(all_data)
     clean_data = structure_data(tokens_labels, argv)
-    for i in clean_data:
-        for j in i:
-            print(j)
     return clean_data
+
 
 
 if __name__ == "__main__":

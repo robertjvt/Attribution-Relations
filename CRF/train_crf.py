@@ -1,13 +1,6 @@
 from Data import read_data
 
-import os
-
-import sklearn
-from sklearn.metrics import make_scorer
-
 import sklearn_crfsuite
-from sklearn_crfsuite import scorers
-from sklearn_crfsuite import metrics
 
 
 def word2features(sent, i):
@@ -70,7 +63,6 @@ def train_crf(X_train, y_train):
 
 
 def main():
-    os.chdir('..')
     #parc_train = read_data.main('Data/PARC3.0/PARC_tab_format/train')
     #parc_test = read_data.main('Data/PARC3.0/PARC_tab_format/test')
     parc_dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')
@@ -88,10 +80,10 @@ def main():
     crf = train_crf(X_train, y_train)
     y_pred = crf.predict(X_test)
 
-    with open('CRF/output_crf.txt', 'w') as file:
+    with open('../CRF/output_crf.txt', 'w') as file:
         for sentence in y_pred:
             file.write('\t'.join(sentence) + '\n')
-    with open('CRF/input_crf.txt', 'w') as file:
+    with open('../CRF/input_crf.txt', 'w') as file:
         for sentence in y_test:
             file.write('\t'.join(sentence) + '\n')
 

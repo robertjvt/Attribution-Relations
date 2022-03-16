@@ -1,40 +1,41 @@
-import os
 import re
+import sys
+
+from sklearn import metrics
+
+def read_data(input: str, output: str):
+    """Reads the .txt data in which the input that was used for the model and the
+    output it produced.
+
+    :param input: gold labels
+    :param output: predicted labels
+    :return: predicted labels, gold labels
+    """
+    with open(input, 'r') as file:
+        predictions = []
+        for line in file:
+            line = re.sub('SOURCE', 'SOURCEX', line)
+            line = line.rstrip() + '\t<eos>'
+            predictions.append(line.rstrip().split('\t'))
+
+    with open(output, 'r') as file:
+        gold = []
+        for line in file:
+            line = re.sub('SOURCE', 'SOURCEX', line)
+            line = line.rstrip() + '\t<eos>'
+            gold.append(line.rstrip().split('\t'))
+
+    return predictions, gold
 
 
-def determine_spans(data):
+def determine_spans(data: list) -> list:
+    """Retrieves spans in the data, which are consecutive tokens.
+
+    :param data: list of tokens of sentences
+    :return: list of spans in the data with index features
+    """
     spans = []
-    # sentence index
-    i = 0
-    for sentence in data:
-        span = []
-        # begin and end index of the span
-        first, second = 0, 0
-        # token index
-        j = 0
-        for item in sentence:
-            if item[0] == 'B' and span == []:
-                span = [item]
-                first = j
-            elif item[0] == 'I':
-                span.append(item)
-            elif item == 'O' and span != []:
-                second = j-1
-                spans.append([i, [first, second], span])
-                span = []
-            elif item[0] == 'B' and span != []:
-                second = j-1
-                spans.append([i, [first, second], span])
-                first = j
-                span = [item]
-            j += 1
-        i += 1
-    return spans
-
-
-def determine_spans2(data):
-    spans = []
-    j = 0
+    sentence_index = 0
     for sentence in data:
         i = 0
         span = []
@@ -44,20 +45,22 @@ def determine_spans2(data):
 
             if span == []:
                 span = [item]
-                first = i
+                start_index = i
             elif i != 0 and item[-1] == prev_item[-1]:
                 span.append(item)
             elif i != 0 and item[-1] != prev_item[-1]:
-                second = i
-                spans.append([j, [first, second], [re.sub('SOURCEX', 'SOURCE', token) for token in span]])
-                first = i
+                end_index = i
+                spans.append([sentence_index, [start_index, end_index], [re.sub('SOURCEX', 'SOURCE', token) for token in span]])
+                start_index = i
                 span = [item]
             i += 1
-        j += 1
+        sentence_index += 1
     return spans
 
-def evaluate_spans(gold_spans, predictions):
-    """Evaluates the predictions to the gold spans using a strict match.
+
+def strict_match(gold_spans: list, predictions: list):
+    """Evaluates the predictions to the gold spans using a strict match on
+    the spans.
 
     :param gold_spans: the spans retrieved from the gold data
     :param predictions: the predictions that are retrieved from a model
@@ -67,10 +70,12 @@ def evaluate_spans(gold_spans, predictions):
     fp = 0
     fn = 0
     for span in gold_spans:
-        sentence_index = span[0]
-        span_index = span[1]
+        sent_index = span[0]
+        begin_span = span[1][0]
+        end_span = span[1][1]
+
         gold_span = span[2]
-        pred_span = predictions[sentence_index][span_index[0]:span_index[1]]
+        pred_span = predictions[sent_index][begin_span:end_span]
         if gold_span == pred_span and gold_span.count('O') != len(gold_span):
             tp += 1
         elif gold_span.count('O') == len(gold_span) and pred_span.count('O') == len(pred_span):
@@ -80,41 +85,83 @@ def evaluate_spans(gold_spans, predictions):
         elif gold_span != pred_span:
             fp += 1
 
-    print(f'Total spans in gold: {len(gold_spans)}')
-    print(f'TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}')
-    print(f'Precision: {tp / (tp + fp)}')
-    print(f'Recall: {tp / (tp + fn)}')
-    print(f'F1: {(2*tp) / ((2*tp) + fp + fn)}')
+    print(f'Total spans: {len(gold_spans)}\n'
+          f'TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}\n'
+          f'Precision: {tp / (tp + fp)}\n'
+          f'Recall: {tp / (tp + fn)}\n'
+          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n')
 
 
-def evaluate_spans_partial(gold_spans, predictions):
-    # precision = sum of elements gold spans * sum of elements predictions / absolute values of predictions
-    # recall =
-    # f1 = 2*p * 2*r / (p + r)
-    # use micro-average scores
-    pass
+def overlap_match(gold_spans: list, predictions: list):
+    """Evaluates the prediction spans on the gold spans using a softer
+    match. Instead gives points based on the amount of overlap in a span.
+
+    :param gold_spans: the spans retrieved from the gold data
+    :param predictions: the predictions that are retrieved from a model
+    """
+    tp = 0
+    tn = 0
+    fp = 0
+    fn = 0
+    for span in gold_spans:
+        sent_index = span[0]
+        begin_span = span[1][0]
+        end_span = span[1][1]
+
+        gold_span = span[2]
+        pred_span = predictions[sent_index][begin_span:end_span]
+
+        correct = 0
+        incorrect = 0
+        correct_neg = 0
+        incorrect_neg = 0
+
+        for i in range(len(gold_span)):
+            if pred_span[i] == gold_span[i]:
+                if pred_span[i] == 'O' and gold_span[i] == 'O':
+                    correct_neg += 1
+                else:
+                    correct += 1
+            else:
+                if pred_span[i] != 'O' and gold_span[i] == 'O':
+                    incorrect_neg += 1
+                else:
+                    incorrect += 1
+
+        tp += correct / len(gold_span)
+        fp += incorrect / len(gold_span)
+        tn += correct_neg / len(gold_span)
+        fn += incorrect_neg / len(gold_span)
+
+    print(f'Total spans: {len(gold_spans)}\n'
+          f'TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}\n'
+          f'Precision: {tp / (tp + fp)}\n'
+          f'Recall: {tp / (tp + fn)}\n'
+          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n')
 
 
-def main():
-    os.chdir('..')
-    with open('CRF/output_crf.txt', 'r') as file:
-        real_predictions = []
-        for line in file:
-            line = re.sub('SOURCE', 'SOURCEX', line)
-            line = line.rstrip() + '\t<eos>'
-            real_predictions.append(line.rstrip().split('\t'))
+def token_match(gold: list, predictions: list):
+    """Shows a classification report for exact match on AR labels.
 
-    with open('CRF/input_crf.txt', 'r') as file:
-        gold = []
-        predictions = []
-        for line in file:
-            predictions.append(line.rstrip().split('\t'))
-            line = re.sub('SOURCE', 'SOURCEX', line)
-            line = line.rstrip() + '\t<eos>'
-            gold.append(line.rstrip().split('\t'))
+    :param gold: list of sentences with list of gold labels
+    :param predictions: list of sentences with list of predicted labels
+    """
+    labels = ['O', 'B-CONTENT', 'I-CONTENT', 'B-CUE', 'B-SOURCE', 'I-SOURCE', 'I-CUE']
+    gold = [re.sub('SOURCEX', 'SOURCE', word) for sent in gold for word in sent if word != '<eos>']
+    predictions = [re.sub('SOURCEX', 'SOURCE', word) for sent in predictions for word in sent if word != '<eos>']
 
-    gold_spans = determine_spans2(gold)
-    evaluate_spans(gold_spans, real_predictions)
+    sorted_labels = sorted(labels, key=lambda name: (name[1:], name[0]))
+    print(metrics.classification_report(gold, predictions, labels=sorted_labels))
+
+
+def main(loc_output, loc_input):
+    # loc output and input: ../CRF/output_crf.txt ../CRF/input_crf.txt
+    predictions, gold = read_data(loc_output, loc_input)
+    gold_spans = determine_spans(gold)
+    strict_match(gold_spans, predictions)
+    overlap_match(gold_spans, predictions)
+    token_match(gold, predictions)
+
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1], sys.argv[2])
