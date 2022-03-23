@@ -1,0 +1,28 @@
+Span-based exact match evaluation
+Total spans: 6060
+TP: 1778, TN: 2662, FP: 486, FN: 1134
+Precision: 0.7853356890459364
+Recall: 0.6105769230769231
+F1: 0.6870170015455951
+
+Span-based soft overlap evaluation
+Total spans: 6060
+TP: 1962.0700866438024, TN: 2700.3704909201483, FP: 233.39009046360204, FN: 1164.1693319724484
+Precision: 0.8936942273436717
+Recall: 0.6276135074492349
+F1: 0.7373847588918616
+
+              precision    recall  f1-score   support
+
+           O       0.77      0.93      0.84     32243
+   B-CONTENT       0.74      0.54      0.62      1025
+   I-CONTENT       0.85      0.63      0.72     18316
+       B-CUE       0.92      0.65      0.76      1022
+       I-CUE       0.71      0.26      0.39       254
+    B-SOURCE       0.89      0.64      0.75       918
+    I-SOURCE       0.90      0.67      0.77      2894
+
+    accuracy                           0.80     56672
+   macro avg       0.83      0.62      0.69     56672
+weighted avg       0.81      0.80      0.79     56672
+

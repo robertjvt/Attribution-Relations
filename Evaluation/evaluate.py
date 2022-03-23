@@ -3,6 +3,11 @@ import sys
 
 from sklearn import metrics
 
+# File of where to save the results to (define model used, datasets that were used to train on
+# and the dataset that was evaluated on.
+file_name = "../Results/CRF/crf_parc_parc.txt"
+
+
 def read_data(input: str, output: str):
     """Reads the .txt data in which the input that was used for the model and the
     output it produced.
@@ -14,8 +19,6 @@ def read_data(input: str, output: str):
     with open(input, 'r') as file:
         predictions = []
         for line in file:
-            line = re.sub('SOURCE', 'SOURCEX', line)
-            line = line.rstrip() + '\t<eos>'
             predictions.append(line.rstrip().split('\t'))
 
     with open(output, 'r') as file:
@@ -69,6 +72,7 @@ def strict_match(gold_spans: list, predictions: list):
     tn = 0
     fp = 0
     fn = 0
+    test = []
     for span in gold_spans:
         sent_index = span[0]
         begin_span = span[1][0]
@@ -83,14 +87,16 @@ def strict_match(gold_spans: list, predictions: list):
         elif pred_span.count('O') == len(pred_span) and gold_span.count('O') != len(gold_span):
             fn += 1
         elif gold_span != pred_span:
+            test.append((gold_span, pred_span))
             fp += 1
 
-    print(f'Total spans: {len(gold_spans)}\n'
+    print(f'Span-based exact match evaluation\n'
+          f'Total spans: {len(gold_spans)}\n'
           f'TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}\n'
           f'Precision: {tp / (tp + fp)}\n'
           f'Recall: {tp / (tp + fn)}\n'
-          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n')
-
+          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n',
+          file=open(file_name, 'w'))
 
 def overlap_match(gold_spans: list, predictions: list):
     """Evaluates the prediction spans on the gold spans using a softer
@@ -125,19 +131,23 @@ def overlap_match(gold_spans: list, predictions: list):
             else:
                 if pred_span[i] != 'O' and gold_span[i] == 'O':
                     incorrect_neg += 1
-                else:
+                elif pred_span[i] != 'O' and gold_span[i] != 'O':
+                    incorrect_neg += 1
+                elif pred_span[i] == 'O' and gold_span[i] != 'O':
                     incorrect += 1
 
         tp += correct / len(gold_span)
-        fp += incorrect / len(gold_span)
+        fp += incorrect_neg / len(gold_span)
         tn += correct_neg / len(gold_span)
-        fn += incorrect_neg / len(gold_span)
+        fn += incorrect / len(gold_span)
 
-    print(f'Total spans: {len(gold_spans)}\n'
+    print(f'Span-based soft overlap evaluation\n'
+          f'Total spans: {len(gold_spans)}\n'
           f'TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}\n'
           f'Precision: {tp / (tp + fp)}\n'
           f'Recall: {tp / (tp + fn)}\n'
-          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n')
+          f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n',
+          file=open(file_name, 'a'))
 
 
 def token_match(gold: list, predictions: list):
@@ -151,11 +161,12 @@ def token_match(gold: list, predictions: list):
     predictions = [re.sub('SOURCEX', 'SOURCE', word) for sent in predictions for word in sent if word != '<eos>']
 
     sorted_labels = sorted(labels, key=lambda name: (name[1:], name[0]))
-    print(metrics.classification_report(gold, predictions, labels=sorted_labels))
+    print(metrics.classification_report(gold, predictions, labels=sorted_labels),
+          file=open(file_name, 'a'))
 
 
 def main(loc_output, loc_input):
-    # loc output and input: ../CRF/output_crf.txt ../CRF/input_crf.txt
+    # loc output and input: "../CRF/output_crf.txt" "../CRF/input_crf.txt"
     predictions, gold = read_data(loc_output, loc_input)
     gold_spans = determine_spans(gold)
     strict_match(gold_spans, predictions)

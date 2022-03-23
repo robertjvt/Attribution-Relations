@@ -127,10 +127,22 @@ def remove_nested_ars():
                     f.close()
 
 
+def rename_file_name():
+    """Can be used to rename the file extension."""
+    with os.scandir('VaccinationCorpus/testing') as directory:
+        for entry in directory:
+            if entry.name.endswith('.conll') and entry.is_file():
+                fileloc = entry.path
+                os.rename(fileloc, fileloc + '-1')
+
+
 def main():
     #restructure_all_data()
     #convert_unique_ids()
     remove_nested_ars()
+
+
+    #rename_file_name()
 
 
 if __name__ == "__main__":
