@@ -8,7 +8,7 @@ def read_data(location: str) -> list:
     file_data = []
     with os.scandir(location) as directory:
         for entry in directory:
-            if entry.name.endswith('.conll') or entry.name.endswith('features') and entry.is_file():
+            if entry.name.endswith('.conll') or entry.name.endswith('features') or entry.name.endswith('.conll-3') and entry.is_file():
                 with open(entry.path, encoding='utf8') as file:
                     data = []
                     in_file = file.readlines()
@@ -172,23 +172,54 @@ def count_sent_and_ars(data):
     print(ar_type_counter)
 
 
+def multi_sentence_ar(data):
+    ar_id = re.compile(r'[0-9]+')
+    total_multi_sent = {}
+
+    for file in data:
+        total_found = []
+        for sentence in file:
+            found_labels = []
+            for token in sentence:
+                for i in re.findall(ar_id, token[-1]):
+                    if i not in found_labels:
+                        found_labels.append(i)
+            total_found.append(found_labels)
+
+        count_multi = {}
+        for found_ids in total_found:
+            for id in found_ids:
+                if id not in count_multi:
+                    count_multi[id] = 1
+                else:
+                    count_multi[id] += 1
+
+        for key, value in count_multi.items():
+            if value not in total_multi_sent:
+                total_multi_sent[value] = 1
+            else:
+                total_multi_sent[value] += 1
+
+    return total_multi_sent
+
+
 def main():
-    all = False
-    parc_dev = read_data('PARC3.0/PARC_tab_format/dev')
-    polnear_dev = read_data('POLNEAR_enriched/dev')
-    vaccorp_dev = read_data('VaccinationCorpus/testing')
+    all = True
+    parc_dev = read_data('../Data/PARC3.0/PARC_tab_format/dev')
+    polnear_dev = read_data('../Data/POLNEAR_enriched/dev')
+    vaccorp_dev = read_data('../Data/VaccinationCorpus/testing')
     dev = parc_dev + polnear_dev + vaccorp_dev
 
     if all:
-        parc_test = read_data('PARC3.0/PARC_tab_format/test')
-        parc_train = read_data('PARC3.0/PARC_tab_format/train')
+        parc_test = read_data('../Data/PARC3.0/PARC_tab_format/test')
+        parc_train = read_data('../Data/PARC3.0/PARC_tab_format/train')
         parc = parc_dev + parc_test + parc_train
 
-        polnear_test = read_data('POLNEAR_enriched/test')
-        polnear_train = read_data('POLNEAR_enriched/train')
+        polnear_test = read_data('../Data/POLNEAR_enriched/test')
+        polnear_train = read_data('../Data/POLNEAR_enriched/train')
         polnear = polnear_dev + polnear_train + polnear_test
 
-        vaccorp = read_data('VaccinationCorpus')
+        vaccorp = read_data('../Data/VaccinationCorpus')
 
         # Extract the amount of nested ARs
         #print(extract_nested(vaccorp))
@@ -212,7 +243,11 @@ def main():
         # AR types and sentence counter
         #count_sent_and_ars(parc)
         #count_sent_and_ars(polnear)
-        count_sent_and_ars(vaccorp)
+        #count_sent_and_ars(vaccorp)
 
+        # Count ARs spanning over multiple sentences
+        print(multi_sentence_ar(parc))
+        print(multi_sentence_ar(polnear))
+        print(multi_sentence_ar(vaccorp))
 
 main()
