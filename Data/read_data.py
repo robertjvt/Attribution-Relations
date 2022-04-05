@@ -104,9 +104,9 @@ def structure_data(tokens_labels: list, argv: str) -> list:
 
 
 def main(argv: str) -> list:
-    # parc loc: "Data/PARC3.0/PARC_tab_format/dev"
-    # polnear loc: "Data/POLNEAR_enriched/dev"
-    # vaccination loc: "Data/VaccinationCorpus/testing"
+    # parc loc: "../Data/PARC3.0/PARC_tab_format/dev"
+    # polnear loc: "../Data/POLNEAR_enriched/dev"
+    # vaccination loc: "../Data/VaccinationCorpus/testing"
 
     all_data = read_data(argv)
     tokens_labels = extract_tokens_labels(all_data, argv)
