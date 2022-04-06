@@ -8,6 +8,7 @@ import sklearn_crfsuite
 from sklearn.metrics import make_scorer
 from sklearn_crfsuite import metrics
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
@@ -214,14 +215,14 @@ def define_data(train, test):
             train_data += read_data.main("../Data/POLNEAR_enriched/train")
             train_data += read_data.main("../Data/POLNEAR_enriched/dev")
         elif dataset == 'VACCORP':
-            train_data += read_data.main("../Data/VaccinationCorpus")
+            train_data += read_data.main("../Data/VaccinationCorpus")[:18773]
 
     if test == 'PARC':
         test_data = read_data.main("../Data/PARC3.0/PARC_tab_format/test")
     elif test == 'POLNEAR':
         test_data = read_data.main("../Data/POLNEAR_enriched/test")
     elif test == 'VACCORP':
-        pass
+        test_data = read_data.main("../Data/VaccinationCorpus")[18773:]
 
     return train_data, test_data
 
@@ -229,7 +230,6 @@ def define_data(train, test):
 
 def main():
     start_time = time.time()
-
     development = False
     if development:
         parc_dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')
@@ -238,13 +238,13 @@ def main():
         X_test = [sent2features(s) for s in parc_dev[1076:]]
         y_test = [sent2labels(s) for s in parc_dev[1076:]]
     else:
-        train, test = define_data(['PARC'], 'PARC')
+        train, test = define_data(['VACCORP'], 'VACCORP')
         X_train = [sent2features(s) for s in train]
         y_train = [sent2labels(s) for s in train]
         X_test = [sent2features(s) for s in test]
         y_test = [sent2labels(s) for s in test]
 
-        with open('../CRF/train_input_crf.txt', 'w') as file:
+        with open('../CRF/train_input_crf.txt', 'w', encoding='utf8') as file:
             for sentence in train:
                 for token, label in sentence:
                     file.write(token + '\t' + label + '\n')
@@ -256,10 +256,10 @@ def main():
     #opt_crf = hyperparameter_optimization(X_train, y_train)
     #y_pred = opt_crf.predict(X_test)
 
-    with open('../CRF/output_crf.txt', 'w') as file:
+    with open('../CRF/output_crf.txt', 'w', encoding='utf8') as file:
         for sentence in y_pred:
             file.write('\t'.join(sentence) + '\n')
-    with open('../CRF/input_crf.txt', 'w') as file:
+    with open('../CRF/input_crf.txt', 'w', encoding='utf8') as file:
         for sentence in y_test:
             file.write('\t'.join(sentence) + '\n')
 

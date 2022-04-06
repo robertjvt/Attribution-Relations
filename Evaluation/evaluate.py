@@ -1,11 +1,10 @@
 import re
 import sys
-
 from sklearn import metrics
 
 # File of where to save the results to (define model used, datasets that were used to train on
 # and the dataset that was evaluated on.
-file_name = "../Results/CRF/crf_parc_parc.txt"
+file_name = "../Results/CRF/crf_vaccorp_vaccorp.txt"
 
 
 def read_data(input: str, output: str):
@@ -97,6 +96,7 @@ def strict_match(gold_spans: list, predictions: list):
           f'Recall: {tp / (tp + fn)}\n'
           f'F1: {(2*tp) / ((2*tp) + fp + fn)}\n',
           file=open(file_name, 'w'))
+
 
 def overlap_match(gold_spans: list, predictions: list):
     """Evaluates the prediction spans on the gold spans using a softer
