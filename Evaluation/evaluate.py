@@ -4,7 +4,7 @@ from sklearn import metrics
 
 # File of where to save the results to (define model used, datasets that were used to train on
 # and the dataset that was evaluated on.
-file_name = "../Results/CRF/crf_vaccorp_vaccorp.txt"
+file_name = "../Results/CRF/crf_dev.txt"
 
 
 def read_data(input: str, output: str):
@@ -156,7 +156,7 @@ def token_match(gold: list, predictions: list):
     :param gold: list of sentences with list of gold labels
     :param predictions: list of sentences with list of predicted labels
     """
-    labels = ['O', 'B-CONTENT', 'I-CONTENT', 'B-CUE', 'B-SOURCE', 'I-SOURCE', 'I-CUE']
+    labels = ['B-CONTENT', 'I-CONTENT', 'B-CUE', 'B-SOURCE', 'I-SOURCE', 'I-CUE']
     gold = [re.sub('SOURCEX', 'SOURCE', word) for sent in gold for word in sent if word != '<eos>']
     predictions = [re.sub('SOURCEX', 'SOURCE', word) for sent in predictions for word in sent if word != '<eos>']
 

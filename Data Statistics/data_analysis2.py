@@ -175,24 +175,39 @@ def count_sent_and_ars(data):
 def multi_sentence_ar(data):
     ar_id = re.compile(r'[0-9]+')
     total_multi_sent = {}
+    total_sentence_lengths = {}
 
     for file in data:
         total_found = []
+        total_lengths = []
         for sentence in file:
             found_labels = []
+            found_lengths = []
             for token in sentence:
                 for i in re.findall(ar_id, token[-1]):
                     if i not in found_labels:
                         found_labels.append(i)
+                        found_lengths.append(len(sentence))
             total_found.append(found_labels)
+            total_lengths.append(found_lengths)
 
         count_multi = {}
-        for found_ids in total_found:
-            for id in found_ids:
+        count_lengths = {}
+        for x, found_ids in enumerate(total_found):
+            for i, id in enumerate(found_ids):
                 if id not in count_multi:
                     count_multi[id] = 1
+                    count_lengths[id] = [total_lengths[x][i]]
                 else:
                     count_multi[id] += 1
+                    count_lengths[id].append(total_lengths[x][i])
+
+        for key, value in count_multi.items():
+            if value not in total_sentence_lengths:
+                total_sentence_lengths[value] = [sum(count_lengths.get(key)), 1]
+            else:
+                total_sentence_lengths[value][0] += sum(count_lengths.get(key))
+                total_sentence_lengths[value][1] += 1
 
         for key, value in count_multi.items():
             if value not in total_multi_sent:
@@ -200,7 +215,11 @@ def multi_sentence_ar(data):
             else:
                 total_multi_sent[value] += 1
 
-    return total_multi_sent
+    final_total_sentence_lengths = {}
+    for key, value in total_sentence_lengths.items():
+        final_total_sentence_lengths[key] = round((value[0] / value[1], 3)
+
+    return total_multi_sent, final_total_sentence_lengths
 
 
 def main():
@@ -249,5 +268,6 @@ def main():
         print(multi_sentence_ar(parc))
         print(multi_sentence_ar(polnear))
         print(multi_sentence_ar(vaccorp))
+
 
 main()

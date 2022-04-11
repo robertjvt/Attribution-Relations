@@ -82,6 +82,29 @@ def word2features(sent, doc, i):
             '-1word.punct': True if word1 in punctuation else False,
             '-1word.ne': True if ne1 else False,
         })
+        if i > 1:
+            word2 = sent[i - 2][0]
+            lemma2 = doc[i - 2].lemma_
+            pos_tag2 = doc[i - 2].pos_
+            tag2 = doc[i - 2].tag_
+            dep2 = doc[i - 2].dep_
+            shape2 = doc[i - 2].shape_
+            stop2 = doc[i - 2].is_stop
+            ne2 = doc[i - 2].ent_type_
+            features.update({
+                '-2:word.lower()': word2.lower(),
+                '-2:word.istitle()': word2.istitle(),
+                '-2:word.isupper()': word2.isupper(),
+                '-2:word.lemma': lemma2,
+                '-2word.postag': pos_tag2,
+                '-2word.tag': tag2,
+                '-2word.dep': dep2,
+                '-2word.shape': shape2,
+                '-2word.stop': stop2,
+                '-2word.inverblist': True if word2.lower() in verb_list else False,
+                '-2word.punct': True if word2 in punctuation else False,
+                '-2word.ne': True if ne2 else False,
+            })
     else:
         features['BOS'] = True
 
@@ -108,6 +131,30 @@ def word2features(sent, doc, i):
             '+1word.punct': True if word1 in punctuation else False,
             '+1word.ne': True if ne1 else False,
         })
+        if i < len(sent)-2:
+            word2 = sent[i + 2][0]
+            lemma2 = doc[i + 2].lemma_
+            pos_tag2 = doc[i + 2].pos_
+            tag2 = doc[i + 2].tag_
+            dep2 = doc[i + 2].dep_
+            shape2 = doc[i + 2].shape_
+            stop2 = doc[i + 2].is_stop
+            ne2 = doc[i + 2].ent_type_
+            features.update({
+                '+2:word.lower()': word2.lower(),
+                '+2:word.istitle()': word2.istitle(),
+                '+2:word.isupper()': word2.isupper(),
+                '+2:word.lemma': lemma2,
+                '+2word.postag': pos_tag2,
+                '+2word.tag': tag2,
+                '+2word.dep': dep2,
+                '+2word.shape': shape2,
+                '+2word.stop': stop2,
+                '+2word.inverblist': True if word2.lower() in verb_list else False,
+                '+2word.punct': True if word2 in punctuation else False,
+                '+2word.ne': True if ne2 else False,
+            })
+
     else:
         features['EOS'] = True
 
@@ -230,7 +277,7 @@ def define_data(train, test):
 
 def main():
     start_time = time.time()
-    development = False
+    development = True
     if development:
         parc_dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')
         X_train = [sent2features(s) for s in parc_dev[:1076]]
