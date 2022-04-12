@@ -274,28 +274,22 @@ def define_data(train, test):
     return train_data, test_data
 
 
-
 def main():
     start_time = time.time()
-    development = True
+    development = False
     if development:
-        parc_dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')
-        X_train = [sent2features(s) for s in parc_dev[:1076]]
-        y_train = [sent2labels(s) for s in parc_dev[:1076]]
-        X_test = [sent2features(s) for s in parc_dev[1076:]]
-        y_test = [sent2labels(s) for s in parc_dev[1076:]]
-    else:
-        train, test = define_data(['VACCORP'], 'VACCORP')
+        train = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[0:5]
+        test = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[5:10]
         X_train = [sent2features(s) for s in train]
         y_train = [sent2labels(s) for s in train]
         X_test = [sent2features(s) for s in test]
         y_test = [sent2labels(s) for s in test]
-
-        with open('../CRF/train_input_crf.txt', 'w', encoding='utf8') as file:
-            for sentence in train:
-                for token, label in sentence:
-                    file.write(token + '\t' + label + '\n')
-                file.write('\n')
+    else:
+        train, test = define_data(['PARC'], 'PARC')
+        X_train = [sent2features(s) for s in train]
+        y_train = [sent2labels(s) for s in train]
+        X_test = [sent2features(s) for s in test]
+        y_test = [sent2labels(s) for s in test]
 
     crf = train_crf(X_train, y_train)
     y_pred = crf.predict(X_test)
@@ -304,11 +298,18 @@ def main():
     #y_pred = opt_crf.predict(X_test)
 
     with open('../CRF/output_crf.txt', 'w', encoding='utf8') as file:
-        for sentence in y_pred:
-            file.write('\t'.join(sentence) + '\n')
+        for i, sentence in enumerate(test):
+            for j, token_label in enumerate(sentence):
+                file.write(f"{token_label[0]}\t{y_pred[i][j]}\n")
+            if i < len(test)-1:
+                file.write('\n')
+
     with open('../CRF/input_crf.txt', 'w', encoding='utf8') as file:
-        for sentence in y_test:
-            file.write('\t'.join(sentence) + '\n')
+        for i, sentence in enumerate(test):
+            for j, token_label in enumerate(sentence):
+                file.write(f"{token_label[0]}\t{token_label[1]}\n")
+            if i < len(test)-1:
+                file.write('\n')
 
     print(f"Done entirely. Total time spent:", round(time.time() - start_time, 2), "seconds.")
 

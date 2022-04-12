@@ -1,31 +1,55 @@
 import re
 import sys
 from sklearn import metrics
+import spacy
 
 # File of where to save the results to (define model used, datasets that were used to train on
 # and the dataset that was evaluated on.
-file_name = "../Results/CRF/crf_dev.txt"
+file_name = "../Results/CRF/crf_parc_parc.txt"
+nlp = spacy.load("en_core_web_sm")
+
+
+def preprocess_cue(data):
+    temp_total = []
+    input_sentences = []
+    verb_list = ['VBD', 'VBN', 'VBG', 'VBP', 'VBZ']
+    with open(data, 'r', encoding='utf8') as file:
+        for token_label in file:
+            if token_label == '\n':
+                temp_tokens = [token_label2[0] for token_label2 in temp_total]
+                doc = nlp(' '.join(temp_tokens))
+                for i, token in enumerate(temp_tokens):
+                    temp_total[i].append(doc[i].tag_)
+                input_sentences.append(temp_total)
+                temp_total = []
+            else:
+                temp_total.append(token_label.rstrip().split('\t'))
+
+    for i, sentence in enumerate(input_sentences):
+        for j, token_label_pos in enumerate(sentence):
+            if token_label_pos[1] == 'B-CUE' or token_label_pos[1] == 'I-CUE':
+                if token_label_pos[2] in verb_list:
+                    input_sentences[i][j][1] = 'CUE'
+                else:
+                    input_sentences[i][j][1] = 'O'
+
+    return input_sentences
 
 
 def read_data(input: str, output: str):
-    """Reads the .txt data in which the input that was used for the model and the
-    output it produced.
+    predictions = []
+    for sentence in input:
+        temp = []
+        for token_label_pos in sentence:
+            temp.append(token_label_pos[1])
+        predictions.append(temp)
 
-    :param input: gold labels
-    :param output: predicted labels
-    :return: predicted labels, gold labels
-    """
-    with open(input, 'r') as file:
-        predictions = []
-        for line in file:
-            predictions.append(line.rstrip().split('\t'))
-
-    with open(output, 'r') as file:
-        gold = []
-        for line in file:
-            line = re.sub('SOURCE', 'SOURCEX', line)
-            line = line.rstrip() + '\t<eos>'
-            gold.append(line.rstrip().split('\t'))
+    gold = []
+    for sentence in output:
+        temp = []
+        for token_label_pos in sentence:
+            temp.append(token_label_pos[1])
+        gold.append(temp)
 
     return predictions, gold
 
@@ -156,7 +180,7 @@ def token_match(gold: list, predictions: list):
     :param gold: list of sentences with list of gold labels
     :param predictions: list of sentences with list of predicted labels
     """
-    labels = ['B-CONTENT', 'I-CONTENT', 'B-CUE', 'B-SOURCE', 'I-SOURCE', 'I-CUE']
+    labels = ['B-CONTENT', 'I-CONTENT', 'B-SOURCE', 'I-SOURCE', 'CUE']
     gold = [re.sub('SOURCEX', 'SOURCE', word) for sent in gold for word in sent if word != '<eos>']
     predictions = [re.sub('SOURCEX', 'SOURCE', word) for sent in predictions for word in sent if word != '<eos>']
 
@@ -167,7 +191,8 @@ def token_match(gold: list, predictions: list):
 
 def main(loc_output, loc_input):
     # loc output and input: "../CRF/output_crf.txt" "../CRF/input_crf.txt"
-    predictions, gold = read_data(loc_output, loc_input)
+    cue_pred, cue_gold = preprocess_cue(loc_output), preprocess_cue(loc_input)
+    predictions, gold = read_data(cue_pred, cue_gold)
     gold_spans = determine_spans(gold)
     strict_match(gold_spans, predictions)
     overlap_match(gold_spans, predictions)

@@ -197,7 +197,7 @@ def main(argv: str) -> list:
     clean_data = structure_data(tokens_labels, argv)
     removed_data = remove_multi_ars(clean_data)
 
-    return clean_data
+    return removed_data
 
 
 
