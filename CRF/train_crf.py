@@ -262,19 +262,20 @@ def define_data(train, test):
             train_data += read_data.main("../Data/POLNEAR_enriched/train")
             train_data += read_data.main("../Data/POLNEAR_enriched/dev")
         elif dataset == 'VACCORP':
-            train_data += read_data.main("../Data/VaccinationCorpus")[:18773]
+            train_data += read_data.main("../Data/VaccinationCorpus")[:18775]
 
     if test == 'PARC':
         test_data = read_data.main("../Data/PARC3.0/PARC_tab_format/test")
     elif test == 'POLNEAR':
         test_data = read_data.main("../Data/POLNEAR_enriched/test")
     elif test == 'VACCORP':
-        test_data = read_data.main("../Data/VaccinationCorpus")[18773:]
+        test_data = read_data.main("../Data/VaccinationCorpus")[18775:]
 
     return train_data, test_data
 
 
 def main():
+    # vaccorp = 23467
     start_time = time.time()
     development = False
     if development:
@@ -285,7 +286,7 @@ def main():
         X_test = [sent2features(s) for s in test]
         y_test = [sent2labels(s) for s in test]
     else:
-        train, test = define_data(['PARC'], 'PARC')
+        train, test = define_data(['POLNEAR'], 'VACCORP')
         X_train = [sent2features(s) for s in train]
         y_train = [sent2labels(s) for s in train]
         X_test = [sent2features(s) for s in test]
@@ -311,7 +312,10 @@ def main():
             if i < len(test)-1:
                 file.write('\n')
 
-    print(f"Done entirely. Total time spent:", round(time.time() - start_time, 2), "seconds.")
+    print(f"Done training entirely. Total time spent:", round(time.time() - start_time, 2), "seconds.")
+
+    from Evaluation import evaluate
+    evaluate.main("../CRF/output_crf.txt", "../CRF/input_crf.txt")
 
 
 if __name__ == "__main__":

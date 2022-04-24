@@ -2,10 +2,12 @@ import re
 import sys
 from sklearn import metrics
 import spacy
+import time
 
 # File of where to save the results to (define model used, datasets that were used to train on
 # and the dataset that was evaluated on.
-file_name = "../Results/CRF/crf_parc_parc.txt"
+#file_name = "../Results/CRF/crf_polnear_vaccorp.txt"
+file_name = "../Results/BERT/distilbert_parc_polnear.txt"
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -190,13 +192,20 @@ def token_match(gold: list, predictions: list):
 
 
 def main(loc_output, loc_input):
-    # loc output and input: "../CRF/output_crf.txt" "../CRF/input_crf.txt"
+    # loc output and input:
+    # "../CRF/output_crf.txt" "../CRF/input_crf.txt"
+    # "../BERT/output_bert.txt" "../BERT/input_bert.txt"
+
+    start_time = time.time()
+
     cue_pred, cue_gold = preprocess_cue(loc_output), preprocess_cue(loc_input)
     predictions, gold = read_data(cue_pred, cue_gold)
     gold_spans = determine_spans(gold)
     strict_match(gold_spans, predictions)
     overlap_match(gold_spans, predictions)
     token_match(gold, predictions)
+
+    print(f"Done evaluating. Total time spent:", round(time.time() - start_time, 2), "seconds.")
 
 
 if __name__ == "__main__":

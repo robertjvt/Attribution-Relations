@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import random
+random.seed(10)
 
 
 def read_data(location: str) -> list:
@@ -14,35 +16,42 @@ def read_data(location: str) -> list:
     temp = []
     id_counter = 0
     id_regex = re.compile(r'[0-9]+')
-    repl_id_regex = re.compile(r'(?<![0-9])id(?![0-9])')
-    with os.scandir(location) as directory:
-        for entry in directory:
-            file_data = []
-            if entry.name.endswith('.conll') or entry.name.endswith('features') or entry.name.endswith('.conll-3') and entry.is_file():
-                with open(entry.path, encoding='utf8') as file:
-                    # Create a dictionary of all AR id's and give it a new unique value
-                    in_file = file.readlines()
-                    in_file.append('\n')
-                    for line in in_file:
-                        if line == '\n':
-                            file_data.append(temp)
-                            temp = []
-                        else:
-                            temp.append(line.rstrip().split('\t'))
-                    id_dict, id_counter = create_id_dict(file_data, id_counter)
 
-                    # Convert AR id's to be unique over all files
-                    for line in in_file:
-                        if line == '\n':
-                            final_data.append(temp)
-                            temp = []
-                        else:
-                            line = line.rstrip().split('\t')
-                            if re.findall(id_regex, line[-1]):
-                                for found_id in re.findall(id_regex, line[-1]):
-                                    repl_id = r'(?<![0-9])' + found_id + '(?![0-9])'
-                                    line[-1] = re.sub(repl_id, str(id_dict[found_id]), line[-1])
-                            temp.append(line)
+    if 'VaccinationCorpus' in location:
+        # shuffle the file order with a random number
+        directory = sorted(os.scandir(location), key=lambda e: 0.49995030888562586)
+    else:
+        # keep the directory sorted
+        directory = sorted(os.scandir(location), key=lambda e: e.name)
+
+    for entry in directory:
+        file_data = []
+        if entry.name.endswith('.conll') or entry.name.endswith('features') or entry.name.endswith('.conll-3') and entry.is_file():
+            with open(entry.path, encoding='utf8') as file:
+                # Create a dictionary of all AR id's and give it a new unique value
+                in_file = file.readlines()
+                in_file.append('\n')
+                for line in in_file:
+                    if line == '\n':
+                        file_data.append(temp)
+                        temp = []
+                    else:
+                        temp.append(line.rstrip().split('\t'))
+                id_dict, id_counter = create_id_dict(file_data, id_counter)
+
+                # Convert AR id's to be unique over all files
+                for line in in_file:
+                    if line == '\n':
+                        final_data.append(temp)
+                        temp = []
+                    else:
+                        line = line.rstrip().split('\t')
+                        if re.findall(id_regex, line[-1]):
+                            for found_id in re.findall(id_regex, line[-1]):
+                                repl_id = r'(?<![0-9])' + found_id + '(?![0-9])'
+                                line[-1] = re.sub(repl_id, str(id_dict[found_id]), line[-1])
+                        temp.append(line)
+
     # for i in final_data:
     #     for j in i:
     #         print(j)
