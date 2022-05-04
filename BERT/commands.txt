@@ -1,0 +1,4 @@
+
+squeue -u s4535553
+
+sbatch execute.sh

@@ -8,7 +8,6 @@ import sklearn_crfsuite
 from sklearn.metrics import make_scorer
 from sklearn_crfsuite import metrics
 from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
@@ -286,7 +285,7 @@ def main():
         X_test = [sent2features(s) for s in test]
         y_test = [sent2labels(s) for s in test]
     else:
-        train, test = define_data(['POLNEAR'], 'VACCORP')
+        train, test = define_data(['VACCORP'], 'POLNEAR')
         X_train = [sent2features(s) for s in train]
         y_train = [sent2labels(s) for s in train]
         X_test = [sent2features(s) for s in test]
@@ -314,8 +313,8 @@ def main():
 
     print(f"Done training entirely. Total time spent:", round(time.time() - start_time, 2), "seconds.")
 
-    from Evaluation import evaluate
-    evaluate.main("../CRF/output_crf.txt", "../CRF/input_crf.txt")
+    #from Evaluation import evaluate
+    #evaluate.main("../CRF/output_crf.txt", "../CRF/input_crf.txt")
 
 
 if __name__ == "__main__":

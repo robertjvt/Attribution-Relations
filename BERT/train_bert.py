@@ -14,7 +14,7 @@ from transformers import BertForTokenClassification, DistilBertForTokenClassific
 #model = BertForTokenClassification.from_pretrained("bert-base-cased", num_labels=7)
 
 tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-cased')
-model = DistilBertForTokenClassification.from_pretrained("bert-base-cased", num_labels=7)
+model = DistilBertForTokenClassification.from_pretrained("distilbert-base-cased", num_labels=7)
 
 
 class ARdataset(torch.utils.data.Dataset):
@@ -102,19 +102,24 @@ def sent2tokens(sent):
 def main():
     development = True
     if development:
-        # len development = 1346
         #train = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[0:5]
         #test = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[5:10]
         #dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[10:15]
 
         #vaccorp = read_data.main("../Data/VaccinationCorpus")
+        #print(len(vaccorp))
         #train = vaccorp[:18775]
         #test = vaccorp[21121:]
         #dev = vaccorp[18775:21121]
 
-        train = read_data.main('../Data/PARC3.0/PARC_tab_format/train')[0:100]
-        dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')[0:30]
-        test = read_data.main('../Data/POLNEAR_enriched/test')[0:30]
+        train = read_data.main('../Data/PARC3.0/PARC_tab_format/train')
+        train += read_data.main('../Data/POLNEAR_enriched/train')
+
+        dev = read_data.main('../Data/PARC3.0/PARC_tab_format/dev')
+        dev += read_data.main('../Data/POLNEAR_enriched/dev')
+
+        #test = vaccorp[21121:]
+        test = read_data.main('../Data/PARC3.0/PARC_tab_format/test')
 
     else:
         train = read_data.main('../Data/PARC3.0/PARC_tab_format/train')
