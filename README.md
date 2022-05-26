@@ -9,13 +9,7 @@ with achieving better results for predicting ARs in textual data (genre news).
 https://github.com/XiangLi1999/PrefixTuning
 
 ## To-do
-- [ ] Go over and check all data for correctness
-- [ ] Finalize (all-at-once) CRF features
-- [ ] Determine pipeline CRF: k-NN or verb list
-- [ ] Run experiments on all dataset combinations
-- [ ] Develop Transformer-based models (RoBERTa or SpanBERT probably)
-- [ ] Ensure reproducibility via Poetry or a requirements.txt
-- [ ] 
+- [ ] Write thesis
 
 
 
