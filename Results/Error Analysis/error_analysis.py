@@ -1,5 +1,7 @@
 import os
 import re
+from collections import Counter
+import pprint
 from Data import read_data
 
 def create_id_dict(file_data, id_counter):
@@ -30,6 +32,12 @@ def extract_tokens_labels(all_data: list, argv: str) -> list:
             if 'VaccinationCorpus' in argv:
                 label = re.findall(token_re, token[-1])
                 temp.append((token[0], token[3], label))
+            elif 'PARC3.0' in argv or 'PolNeAR' in argv:
+                if '_' in token[-1]:
+                    label = token[-1].replace('_', '').split()
+                    temp.append((token[0], token[8], label))
+                else:
+                    temp.append((token[0], token[8], []))
         tokens_labels.append(temp)
     return tokens_labels
 
@@ -59,6 +67,21 @@ def structure_data(tokens_labels: list, argv: str) -> list:
                         temp.append((i[0], i[1], 'O'))
                 else:
                     temp.append((i[0], i[1], 'O'))
+            clean_data.append(temp)
+
+    elif 'PARC3.0' in argv or 'PolNeAR' in argv:
+        for sentence in tokens_labels:
+            temp = []
+            for label_tokens in sentence:
+                tokens = label_tokens[2]
+                filtered_token = [i for i in tokens if not nested_regex.match(i)]
+                if filtered_token != []:
+                    match = re.match(label_regex, filtered_token[0]) or 'O'
+                    if match != 'O':
+                        match = match[0] + '-' + str(id_regex.search(filtered_token[0])[0])
+                    temp.append((label_tokens[0], label_tokens[1], match))
+                else:
+                    temp.append((label_tokens[0], label_tokens[1], 'O'))
             clean_data.append(temp)
 
     return clean_data
@@ -162,12 +185,11 @@ def main():
             input_data.append(tokens)
         input_data.append([input_data[-1][0], ''])
 
-
     gold_news = []
     pred_news = []
     for i, pred in enumerate(output_data):
         source = input_data[i][0]
-        for item in science:
+        for item in org:
             if item in source.lower():
                 pred_news.append(pred)
                 if len(input_data[i]) != 2:
@@ -191,6 +213,102 @@ def main():
             else:
                 file.write('\n')
 
+    from Evaluation import evaluate
+    evaluate.main("../Results/Error Analysis/pred.txt", "../Results/Error Analysis/gold.txt")
+
+
+def compare():
+    os.chdir('..')
+    with open('../Results/BERT/output/input_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+        input = [line.rstrip().split('\t') for line in file.readlines()]
+    with open('../Results/BERT/output/output_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+        output = [line.rstrip().split('\t') for line in file.readlines()]
+
+    cue_errors = []
+    source_errors = []
+    content_errors = []
+    for i, token_label in enumerate(input):
+        if len(token_label) == 2:
+            if token_label[1] != output[i][1]:
+                if token_label[1] == 'B-CUE' or token_label[1] == 'I-CUE' or output[i][1] == 'B-CUE' or output[i][1] == 'I-CUE':
+                    cue_errors.append((token_label[0], token_label[1], output[i][1]))
+                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                elif token_label[1] == 'B-SOURCE' or token_label[1] == 'I-SOURCE' or output[i][1] == 'B-SOURCE' or output[i][1] == 'I-SOURCE':
+                    source_errors.append((token_label[0], token_label[1], output[i][1]))
+                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                elif token_label[1] == 'B-CONTENT' or token_label[1] == 'I-CONTENT' or output[i][1] == 'B-CONTENT' or output[i][1] == 'I-CONTENT':
+                    content_errors.append((token_label[0], token_label[1], output[i][1]))
+                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+
+    counter1 = Counter(cue_errors).most_common(20)
+    counter2 = Counter(source_errors).most_common(20)
+    counter3 = Counter(content_errors).most_common(20)
+    print('\n\n')
+    for i in counter1:
+        print(i)
+    print('\n\n')
+    for i in counter2:
+        print(i)
+    print('\n\n')
+    for i in counter3:
+        print(i)
+
+
+def polnear():
+    os.chdir('..')
+    with open("../Results/BERT/output/output_bert_polnear_polnear.txt", 'r', encoding='utf8') as file:
+        output_data = []
+        for line in file:
+            line = line.rstrip().split('\t')
+            output_data.append(line)
+        output_data.append([''])
+
+    polnear = read_data.read_data("../Data/POLNEAR_enriched/test")
+    tokens_labels = extract_tokens_labels(polnear, 'PolNeAR')
+    clean_data = structure_data(tokens_labels, 'PolNeAR')
+    polnear_data = remove_multi_ars(clean_data)
+
+    input_data = []
+    for line in polnear_data:
+        for tokens in line:
+            input_data.append(tokens)
+        input_data.append([input_data[-1][0], ''])
+
+    # 7 sources in total
+    source_list = ['west-journal_2016']
+    gold_news = []
+    pred_news = []
+    for i, pred in enumerate(output_data):
+        source = input_data[i][0]
+        for item in source_list:
+            if item in source.lower():
+                pred_news.append(pred)
+                if len(input_data[i]) != 2:
+                    gold_news.append([input_data[i][1], input_data[i][2]])
+                else:
+                    gold_news.append([''])
+
+
+    print(os.getcwd())
+    with open('Error Analysis/gold.txt', 'w', encoding='utf8') as file:
+        for token_label in gold_news:
+            if len(token_label) != 1:
+                file.write(f"{token_label[0]}\t{token_label[1]}\n")
+            else:
+                file.write('\n')
+
+    with open('Error Analysis/pred.txt', 'w', encoding='utf8') as file:
+        for token_label in pred_news:
+            if len(token_label) != 1:
+                file.write(f"{token_label[0]}\t{token_label[1]}\n")
+            else:
+                file.write('\n')
+
+    from Evaluation import evaluate
+    evaluate.main("../Results/Error Analysis/pred.txt", "../Results/Error Analysis/gold.txt")
+
 
 if __name__ == "__main__":
     main()
+    #compare()
+    #polnear()
