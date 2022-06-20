@@ -1,15 +1,43 @@
-# Attribution-Relations
-My master thesis on Attribution Relations (ARs) at the University of Groningen. 
+# A comparison of data merging on the classification of Attribution Relations
 
-## Overview
-The general goal is to determine to what extent combining different datasets together can help 
-with achieving better results for predicting ARs in textual data (genre news).
+Robert van Timmeren, supervised by Tommaso Caselli
+
+This repository contains the source code for my master thesis on Attribution Relations (ARs) at the University of Groningen.
+
+## Dependencies
+Make sure you have the following dependencies installed:
+* Python ^3.9
+* All libraries from requirements.txt
+
+## Experiments
+All experiments for this project are conducted with two types of models:
+* BERT [(Devlin et al., 2019)](https://aclanthology.org/N19-1423/)
+* CRF [(Lafferty et al., 2001)](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1162&context=cis_papers)
+
+## Running
+### BERT
+Text.
+
+### CRF
+Text.
 
 ## File-Structure
-https://github.com/XiangLi1999/PrefixTuning
-
-## To-do
-- [ ] Write thesis
+    ├── BERT                          # Folder containing the scripts for fine-tuning BERT.
+    │   ├── execute.sh                # Unix shell executable for fine-tuning on Peregrine.
+    │   ├── input_bert.txt            # Temporary data file with the input test data.
+    │   ├── output_bert.txt           # Temporary data file with the predictions on the test data.
+    │   └── train_bert.py             # The script for fine-tuning BERT.
+    │
+    ├── CRF                           # Folder containing the scripts for training CRFs.
+    │   ├── input_crf.txt             # Temporary data file with the input test data.
+    │   ├── output_crf .txt           # Temporary data file with the predictions on the test data.
+    │   └── train_crf.py              # The script for training the CRFs.
+    │
+    ├── Data                          # Folder containing the corpora (data) for conducting all experiments.
+    │   ├── PARC3.0                   # Folder containg the PARC 3.0 data.
+    │   ├── POLNEAR_enriched          # Folder containg the PolNeAR data.
+    │   └── VaccinationCorpus         # Folder containg the Vaccination Corpus data.
+    └── ...
 
 
 
