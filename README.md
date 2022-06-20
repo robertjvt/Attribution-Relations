@@ -14,6 +14,11 @@ All experiments for this project are conducted with two types of models:
 * BERT [(Devlin et al., 2019)](https://aclanthology.org/N19-1423/)
 * CRF [(Lafferty et al., 2001)](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1162&context=cis_papers)
 
+And three corpora:
+* PARC 3.0 [(Pareti, 2016)](https://aclanthology.org/L16-1619/)
+* PolNeAR [(Newell et al., 2018)](https://aclanthology.org/L18-1524/)
+* Vaccination Corpus [(Morante et al., 2020)](https://aclanthology.org/2020.lrec-1.611/)
+
 ## Running
 ### BERT
 Text.
