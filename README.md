@@ -1,4 +1,4 @@
-# A comparison of data merging on the classification of Attribution Relations
+# An investigation on the portability of systems across Attribution Relation corpora
 
 Robert van Timmeren, supervised by Tommaso Caselli
 
@@ -21,10 +21,25 @@ And three corpora:
 
 ## Running
 ### BERT
-Text.
+For replicating and fine-tuning one of our models run:
+```
+python BERT/train_bert.py
+```
+Please note to set the correct train, dev and test split.
 
 ### CRF
-Text.
+For replicating and training one of our baseline CRFs run:
+```
+python CRF/train_crf.py
+```
+Again, please note to set the correct train, dev and test split. For our CRF script you can simply use our define_data function.
+
+### Evaluation
+For running an evaluation on the predictions of one of the models run:
+```
+python evaluation/evaluate.py "../Results/BERT/output/file_name.txt" "../Results/BERT/input/file_name.txt"
+```
+Change the file_name.txt and folder depending on what you want to evaluate.
 
 ## File-Structure
     ├── BERT                          # Folder containing the scripts for fine-tuning BERT.
@@ -43,6 +58,9 @@ Text.
     │   ├── POLNEAR_enriched          # Folder containg the PolNeAR data.
     │   └── VaccinationCorpus         # Folder containg the Vaccination Corpus data.
     └── ...
+   
+## Acknowledgements
+Special thanks to the Center for Information Technology of the University of Groningen for providing access to the Peregrine high performance computing cluster.
 
 
 
