@@ -41,7 +41,7 @@ python evaluation/evaluate.py "../Results/BERT/output/file_name.txt" "../Results
 ```
 Change the file_name.txt and folder depending on what you want to evaluate.
 
-## File-Structure
+## File structure
     ├── BERT                          # Folder containing the scripts for fine-tuning BERT.
     │   ├── execute.sh                # Unix shell executable for fine-tuning on Peregrine.
     │   ├── input_bert.txt            # Temporary data file with the input test data.
