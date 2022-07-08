@@ -5,7 +5,7 @@ Robert van Timmeren, supervised by Tommaso Caselli
 This repository contains the source code for my master thesis on Attribution Relations (ARs) at the University of Groningen.
 
 ## Dependencies
-Make sure you have the following dependencies installed:
+⚠️ Make sure you have the following dependencies installed: ⚠️
 * Python ^3.9
 * All libraries from requirements.txt
 
@@ -57,6 +57,9 @@ Change the file_name.txt and folder depending on what you want to evaluate.
     │   ├── PARC3.0                   # Folder containg the PARC 3.0 data.
     │   ├── POLNEAR_enriched          # Folder containg the PolNeAR data.
     │   └── VaccinationCorpus         # Folder containg the Vaccination Corpus data.
+    │
+    ├── Evaluation                    # Folder containing the evaluation script.
+    │   └── evaluate.py               # The script for running an evaluation between prediction and gold standard.
     └── ...
    
 ## Acknowledgements
