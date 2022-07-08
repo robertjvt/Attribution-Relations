@@ -189,7 +189,7 @@ def main():
     pred_news = []
     for i, pred in enumerate(output_data):
         source = input_data[i][0]
-        for item in org:
+        for item in wikipedia:
             if item in source.lower():
                 pred_news.append(pred)
                 if len(input_data[i]) != 2:
@@ -219,9 +219,17 @@ def main():
 
 def compare():
     os.chdir('..')
-    with open('../Results/BERT/output/input_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+    # with open('../Results/BERT/output/input_bert_polnear_polnear.txt', 'r', encoding='utf8') as file:
+    #     input = [line.rstrip().split('\t') for line in file.readlines()]
+    # with open('../Results/BERT/output/output_bert_polnear_polnear.txt', 'r', encoding='utf8') as file:
+    #     output = [line.rstrip().split('\t') for line in file.readlines()]
+    # with open('../Results/BERT/output/input_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+    #     input = [line.rstrip().split('\t') for line in file.readlines()]
+    # with open('../Results/BERT/output/output_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+    #     output = [line.rstrip().split('\t') for line in file.readlines()]
+    with open('../Results/BERT/output/input_bert_vaccorp_vaccorp.txt', 'r', encoding='utf8') as file:
         input = [line.rstrip().split('\t') for line in file.readlines()]
-    with open('../Results/BERT/output/output_bert_parc_parc.txt', 'r', encoding='utf8') as file:
+    with open('../Results/BERT/output/output_bert_vaccorp_vaccorp.txt', 'r', encoding='utf8') as file:
         output = [line.rstrip().split('\t') for line in file.readlines()]
 
     cue_errors = []
@@ -230,15 +238,20 @@ def compare():
     for i, token_label in enumerate(input):
         if len(token_label) == 2:
             if token_label[1] != output[i][1]:
+                # if token_label[0] == ',' and token_label[1] == 'I-CONTENT':
+                #     print(f"{input[i-1][0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                if output[i][0] == ',' and output[i][1] == 'I-CONTENT' and token_label[1] != 'I-CONTENT':
+                    print(f"{output[i-1][0]:<20}\t{input[i][1]:<10}\t{output[i][1]:<10}")
+
                 if token_label[1] == 'B-CUE' or token_label[1] == 'I-CUE' or output[i][1] == 'B-CUE' or output[i][1] == 'I-CUE':
                     cue_errors.append((token_label[0], token_label[1], output[i][1]))
-                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                    #print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
                 elif token_label[1] == 'B-SOURCE' or token_label[1] == 'I-SOURCE' or output[i][1] == 'B-SOURCE' or output[i][1] == 'I-SOURCE':
                     source_errors.append((token_label[0], token_label[1], output[i][1]))
-                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                    #print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
                 elif token_label[1] == 'B-CONTENT' or token_label[1] == 'I-CONTENT' or output[i][1] == 'B-CONTENT' or output[i][1] == 'I-CONTENT':
                     content_errors.append((token_label[0], token_label[1], output[i][1]))
-                    print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
+                    #print(f"{token_label[0]:<20}\t{token_label[1]:<10}\t{output[i][1]:<10}")
 
     counter1 = Counter(cue_errors).most_common(20)
     counter2 = Counter(source_errors).most_common(20)
@@ -253,6 +266,16 @@ def compare():
     for i in counter3:
         print(i)
 
+    fp = 0
+    fn = 0
+    counter4 = Counter(cue_errors).most_common() + Counter(source_errors).most_common() + Counter(content_errors).most_common()
+    for i in counter4:
+        if i[0][1] == 'O' and i[0][2] != 'O':
+            fp += 1
+        elif i[0][1] != 'O' and i[0][2] == 'O':
+            fn += 1
+
+    print(fp, fn)
 
 def polnear():
     os.chdir('..')
@@ -309,6 +332,6 @@ def polnear():
 
 
 if __name__ == "__main__":
-    main()
-    #compare()
+    #main()
+    compare()
     #polnear()
