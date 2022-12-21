@@ -2,7 +2,7 @@
 
 Robert van Timmeren, supervised by Tommaso Caselli
 
-This repository contains the source code for my master thesis on Attribution Relations (ARs) at the University of Groningen.
+This repository contains the source code for my master thesis on Attribution Relations (ARs) at the University of Groningen. You can read my thesis over at https://arts.studenttheses.ub.rug.nl/31157/
 
 ## Dependencies
 ⚠️ Make sure you have the following dependencies installed: ⚠️
